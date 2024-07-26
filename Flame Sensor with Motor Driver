@@ -1,0 +1,36 @@
+bool SenseFire(int pin, int status) {
+  return digitalRead(pin) == status;
+}
+
+void stop() {
+  analogWrite(5, LOW); // Disable the pin to stop the motor, to avoid damaging the motor
+  analogWrite(10, LOW);
+  delay(1000);
+}
+
+void forward() {
+  analogWrite(5, 150); // Input a PWM value to set the speed
+  analogWrite(10, 150);
+  digitalWrite(6, HIGH); // Turn DC Motor B move clockwise
+  digitalWrite(7, LOW);
+  digitalWrite(8, HIGH); // Turn DC Motor A move anticlockwise
+  digitalWrite(9, LOW);
+}
+
+void setup() {
+  pinMode(6, OUTPUT); // Motor B direction control
+  pinMode(7, OUTPUT); // Motor B direction control
+  pinMode(5, OUTPUT); // Motor B speed control
+  pinMode(8, OUTPUT); // Motor A direction control
+  pinMode(9, OUTPUT); // Motor A direction control
+  pinMode(10, OUTPUT); // Motor A speed control
+  pinMode(11, INPUT); // Fire sensor input
+}
+
+void loop() {
+  if (SenseFire(11, HIGH)) {
+    stop();
+  } else {
+    forward();
+  }
+}

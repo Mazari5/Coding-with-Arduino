@@ -1,0 +1,76 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Function to scan for I2C devices and return the address
+int scanI2CAddress() {
+  byte error, address;
+  int nDevices;
+
+  Serial.println("Scanning...");
+
+  for (address = 1; address < 127; address++ ) {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+
+    if (error == 0) {
+      Serial.print("I2C device found at address 0x");
+      if (address < 16) Serial.print("0");
+      Serial.println(address, HEX);
+      return address;
+    } else if (error == 4) {
+      Serial.print("Unknown error at address 0x");
+      if (address < 16) Serial.print("0");
+      Serial.println(address, HEX);
+    }
+  }
+
+  Serial.println("No I2C devices found\n");
+  return -1; // Return -1 if no device is found
+}
+
+LiquidCrystal_I2C *lcd;
+
+void setup() {
+  Wire.begin();
+  Serial.begin(9600);
+  
+  int lcdAddress = scanI2CAddress();
+
+  if (lcdAddress != -1) {
+    // Create an instance of the LCD using the found address
+    lcd = new LiquidCrystal_I2C(lcdAddress, 16, 2);
+    lcd->init();      // Initialize the lcd
+    lcd->backlight(); // Turn on the backlight
+    lcd->setCursor(0, 0);
+  } else {
+    Serial.println("LCD not found. Check connections and try again.");
+  }
+}
+
+void loop() {
+ if (lcd) {
+    // Scroll text left and right
+    static String message = "Welcome to LearnOBots ";
+    static int position = 0;
+    
+    // Clear the screen
+    lcd->clear();
+    // Set the cursor to the first column, first row
+    lcd->setCursor(0, 0);
+    // Print the part of the message starting from the current position
+    lcd->print(message.substring(position));
+    // If the message is shorter than the display, wrap it around
+    if (message.length() - position < 16) {
+      lcd->print(message.substring(0, 16 - (message.length() - position)));
+    }
+    
+    // Update the position for the next iteration
+    position++;
+    if (position >= message.length()) {
+      position = 0;
+    }
+    
+    // Delay to control the scroll speed
+    delay(500); // Adjust the delay for desired scroll speed
+  }
+}

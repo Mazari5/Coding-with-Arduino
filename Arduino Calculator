@@ -1,0 +1,102 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
+
+const byte ROWS = 4;
+const byte COLS = 4;
+
+char keys[ROWS][COLS] = {
+  {'7', '8', '9', 'D'},
+  {'4', '5', '6', 'C'},
+  {'1', '2', '3', 'B'},
+  {'*', '0', '#', 'A'}
+};
+
+byte rowPins[ROWS] = {0, 1, 2, 3};
+byte colPins[COLS] = {4, 5, 6, 7};
+
+Keypad kpd = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+// Set the LCD address to 0x27 for a 16 chars and 2 line display
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // Adjust the address and size based on your LCD module
+
+long Num1 = 0, Num2 = 0, Number = 0;
+char key, action;
+boolean result = false;
+
+void setup() {
+  Serial.begin(9600); // Initialize Serial communication
+  lcd.begin(16, 2);
+  lcd.print("DIY Calculator");
+  lcd.setCursor(0, 1);
+  lcd.print("-CircuitDigest");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  key = kpd.getKey();
+  if (key != NO_KEY) {
+    DetectButtons();
+  }
+  if (result == true) {
+    CalculateResult();
+    result = false; // Reset result flag after calculation
+  }
+  DisplayResult();
+}
+
+void DetectButtons() {
+  lcd.clear();
+  if (key == '*') {
+    Serial.println("Button Cancel");
+    Number = Num1 = Num2 = 0;
+    result = false;
+    action = '\0';
+    lcd.clear();
+  } else if (key >= '0' && key <= '9') {
+    Number = Number * 10 + (key - '0');
+    if (action == '\0') {
+      Num1 = Number;
+    } else {
+      Num2 = Number;
+    }
+  } else if (key == 'A' || key == 'B' || key == 'C' || key == 'D') {
+    if (key == 'A') action = '+';
+    else if (key == 'B') action = '-';
+    else if (key == 'C') action = '*';
+    else if (key == 'D') action = '/';
+    Number = 0; // Reset number for next operand
+  } else if (key == '#') {
+    result = true; // Set result flag to calculate result
+  }
+}
+
+void CalculateResult() {
+  if (action == '+')
+    Number = Num1 + Num2;
+  else if (action == '-')
+    Number = Num1 - Num2;
+  else if (action == '*')
+    Number = Num1 * Num2;
+  else if (action == '/') {
+    if (Num2 != 0) {
+      Number = Num1 / Num2;
+    } else {
+      Serial.println("Error: Division by zero");
+      lcd.setCursor(0, 1);
+      lcd.print("Error: Div by 0");
+    }
+  }
+}
+
+void DisplayResult() {
+  lcd.setCursor(0, 0);
+  lcd.print(Num1); lcd.print(action); lcd.print(Num2);
+  if (result == true) {
+    lcd.print("=");
+    lcd.print(Number);
+    Serial.print("Result: ");
+    Serial.println(Number);
+  }
+}

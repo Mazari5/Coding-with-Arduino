@@ -1,0 +1,44 @@
+const int trigPin = 2;  // Trig pin of the ultrasonic sensor
+const int echoPin = 3;  // Echo pin of the ultrasonic sensor
+const int LedPin = 13;  // Can be buzzer or LED
+
+void setup() {
+  pinMode(trigPin, OUTPUT); // Set trigPin as output
+  pinMode(echoPin, INPUT);  // Set echoPin as input
+  pinMode(LedPin, OUTPUT);  // Set LedPin as output
+  Serial.begin(9600);       // Start serial communication at 9600 baud
+}
+
+void loop() {
+  long duration;
+  int distance;
+  
+  // Clear the trigPin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  
+  // Send a 10μs pulse to trigger the ultrasonic sensor
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Read the duration of the echo pulse
+  duration = pulseIn(echoPin, HIGH);
+  
+  // Calculate the distance in centimeters
+  distance = duration * 0.034 / 2;
+  
+  // Print the distance to the Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+  
+  // Check if the distance is less than 10 cm
+  if (distance < 10) {
+    digitalWrite(LedPin, HIGH); // Turn on the buzzer/LED
+  } else {
+    digitalWrite(LedPin, LOW); // Turn off the buzzer/LED
+  }
+  
+  delay(100); // Delay for stability
+}

@@ -1,0 +1,72 @@
+#include <dht.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define DHTPIN 2         // DHT11 sensor out pin
+#define FAN_PIN 3        // Fan control pin
+#define TEMP_THRESHOLD 20.0 // Temperature threshold to turn on/off the fan
+
+dht DHT;
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 32
+#define OLED_ADDRESS 0x3C // Replace with the actual I2C address of your OLED display
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+void setup() {
+  Serial.begin(9600);
+
+  if(!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+
+  display.display();
+  delay(2000);
+
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.print("Temp: ");
+  display.setTextSize(2);
+
+  pinMode(FAN_PIN, OUTPUT);
+}
+
+void loop() {
+  delay(2000);
+
+  int chk = DHT.read11(DHTPIN);
+
+  float temperature = DHT.temperature;
+
+  Serial.print("Temperature: ");
+  Serial.println(temperature);
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  display.print("Temp: ");
+  display.print(temperature);
+  display.print(" C");
+
+  display.setCursor(0, 16);
+  display.print("Threshold: ");
+  display.print(TEMP_THRESHOLD);
+  display.print(" C");
+
+  if (temperature > TEMP_THRESHOLD) {
+    digitalWrite(FAN_PIN, HIGH);
+    display.setCursor(0, 32);
+    display.print("Fan: ON ");
+  } else {
+    digitalWrite(FAN_PIN, LOW);
+    display.setCursor(0, 32);
+    display.print("Fan: OFF");
+  }
+
+  display.display();
+}

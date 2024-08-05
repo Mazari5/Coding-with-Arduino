@@ -1,0 +1,86 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+
+const char* ssid = "LOB";       // Replace with your Wi-Fi network name
+const char* password = "lob12345";    // Replace with your Wi-Fi network password
+
+ESP8266WebServer server(80);
+
+// Define pin numbers
+const int pinD0 = D0;
+const int pinD1 = D1;
+const int pinD2 = D2;
+const int pinD3 = D3;
+const int pinD4 = D4;
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  // Initialize pins
+  pinMode(pinD0, OUTPUT);
+  pinMode(pinD1, OUTPUT);
+  pinMode(pinD2, OUTPUT);
+  pinMode(pinD3, OUTPUT);
+  pinMode(pinD4, OUTPUT);
+
+  // Start web server and define routes
+  server.on("/", handleRoot);
+  server.on("/toggleD0", toggleD0);
+  server.on("/toggleD1", toggleD1);
+  server.on("/toggleD2", toggleD2);
+  server.on("/toggleD3", toggleD3);
+  server.on("/toggleD4", toggleD4);
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
+
+void loop() {
+  server.handleClient();
+}
+
+void handleRoot() {
+  String html = "<h1>NodeMCU Control</h1>"
+                "<p><a href=\"/toggleD0\">Toggle D0</a></p>"
+                "<p><a href=\"/toggleD1\">Toggle D1</a></p>"
+                "<p><a href=\"/toggleD2\">Toggle D2</a></p>"
+                "<p><a href=\"/toggleD3\">Toggle D3</a></p>"
+                "<p><a href=\"/toggleD4\">Toggle D4</a></p>";
+  server.send(200, "text/html", html);
+}
+
+void toggleD0() {
+  digitalWrite(pinD0, !digitalRead(pinD0));
+  server.send(200, "text/plain", "Toggled D0");
+}
+
+void toggleD1() {
+  digitalWrite(pinD1, !digitalRead(pinD1));
+  server.send(200, "text/plain", "Toggled D1");
+}
+
+void toggleD2() {
+  digitalWrite(pinD2, !digitalRead(pinD2));
+  server.send(200, "text/plain", "Toggled D2");
+}
+
+void toggleD3() {
+  digitalWrite(pinD3, !digitalRead(pinD3));
+  server.send(200, "text/plain", "Toggled D3");
+}
+
+void toggleD4() {
+  digitalWrite(pinD4, !digitalRead(pinD4));
+  server.send(200, "text/plain", "Toggled D4");
+}
